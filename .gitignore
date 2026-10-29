@@ -1,0 +1,16 @@
+# Arduino build
+*.hex
+*.elf
+build/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS
+.DS_Store
+
+# 수집 데이터 (대용량/개인 측정값은 커밋 전 확인)
+# data/*.csv
