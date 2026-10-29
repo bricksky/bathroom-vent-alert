@@ -1,0 +1,4 @@
+name: "bathroom-vent-alert"
+bricks:
+  - arduino:sketch
+  - arduino:python
