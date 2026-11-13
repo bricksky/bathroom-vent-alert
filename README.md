@@ -20,12 +20,17 @@ bathroom-vent-alert/
 │       ├── main.py       # 리눅스: Bridge 수신 + CSV 기록 (실물)
 │       └── vent_logic.py # 순수 상태 판단 로직 (하드웨어 의존 없음)
 ├── tools/
-│   ├── simulate.py       # 하드웨어 없이 샘플 CSV 생성 (데모용)
-│   └── analyze.py        # CSV에서 '고습 시간' 계산 + 그래프(선택)
+│   ├── simulate.py       # 하드웨어 없이 샘플 CSV 생성 (demo/baseline/after)
+│   ├── analyze.py        # 단일 CSV에서 '고습 시간' 계산 + 그래프(선택)
+│   ├── compare.py        # 기준선 vs 설치후 감소율 계산 + 성공 판정
+│   └── vent_metrics.py   # 고습 시간 계산 공용 로직 (analyze·compare 공유)
 ├── tests/
-│   └── test_vent_logic.py # 상태머신 로직 테스트
+│   ├── test_vent_logic.py   # 상태머신 로직 테스트
+│   └── test_vent_metrics.py # 고습 시간·감소율 계산 테스트
 └── data/
-    └── sample_vent_log.csv # 시뮬레이터가 만든 데모 데이터
+    ├── sample_vent_log.csv  # 1사이클 데모
+    ├── sample_baseline.csv  # 기준선(알림 끔) 데모
+    └── sample_after.csv     # 설치후(알림 켬) 데모
 ```
 
 ## 하드웨어 요약
@@ -50,14 +55,23 @@ bathroom-vent-alert/
 보드 없이 코드 로직만 검증·시연할 수 있다.
 
 ```bash
-python3 tests/test_vent_logic.py   # 상태머신 로직 테스트 (pytest 불필요)
-python3 tools/simulate.py          # 샤워→환기→완료 1사이클 샘플 CSV 생성
-python3 tools/analyze.py           # 생성된 CSV에서 '고습 시간' 계산
+# 로직 테스트 (pytest 불필요)
+python3 tests/test_vent_logic.py
+python3 tests/test_vent_metrics.py
+
+# 단일 CSV 데모 + 분석
+python3 tools/simulate.py           # 1사이클 샘플 CSV 생성
+python3 tools/analyze.py            # '고습 시간' 계산
+
+# 성공 기준: 기준선 vs 설치후 감소율
+python3 tools/simulate.py --scenario baseline   # 기준선용(알림 끔) 샘플
+python3 tools/simulate.py --scenario after      # 설치후용(알림 켬) 샘플
+python3 tools/compare.py            # 감소율 계산 + 성공(목표 30%) 판정
 ```
 
-`simulate.py`는 `data/sample_vent_log.csv`를 만들고, `analyze.py`는 거기서
-환기 사이클별 고습 시간(VENT 시작~습도<70)과 평균을 계산한다.
-matplotlib이 있으면 습도·조도 그래프 PNG도 저장한다.
+- `analyze.py`: 환기 사이클별 고습 시간(VENT 시작~습도<70)과 평균. matplotlib 있으면 그래프 PNG.
+- `compare.py`: 두 기간의 평균 고습 시간을 비교해 **감소율(%)**과 **목표 달성 여부**를 판정.
+  실제 데이터가 들어오면 `python3 tools/compare.py 기준선.csv 설치후.csv`로 경로만 바꿔 사용.
 
 > ⚠️ `sketch.ino`는 "DHT sensor library"가 필요하며, UNO Q(STM32 코어)에서 컴파일되는지 실물 확인이 필요하다.
 > 판단 기준값(습도 55%, 조도 500 등)은 가짜 값으로, 9주차 모의실험·11주차 실측으로 확정한다.
@@ -74,4 +88,5 @@ matplotlib이 있으면 습도·조도 그래프 PNG도 저장한다.
 |------|--------|------|
 | 8 | 회로도·결선도·비교표 | - |
 | 9 | 센서→파이썬→CSV 코드 구현 | ✅ 완료 (PR #1) |
-| 10 | 현재 구현 시연: 로직 테스트·시뮬레이터·분석기 | 진행 중 |
+| 10 | 현재 구현 시연: 로직 테스트·시뮬레이터·분석기 | ✅ 완료 (PR #2) |
+| 11 | 성공 기준 계산 코드 (기준선 vs 설치후 감소율) *코드 선구현* | 진행 중 |

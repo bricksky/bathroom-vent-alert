@@ -1,62 +1,20 @@
 """
-CSV 분석 헬퍼 — 수집/시뮬레이션한 vent_log CSV에서 '고습 시간'을 계산한다.
-
-고습 시간(experiment.md 성공 기준): state가 VENT로 바뀐 행부터 humidity가 70 미만이
-되는 행까지 걸린 시간 = (행 수 - 1) × 2초. 샤워 사이클마다 구해 평균을 낸다.
+CSV 분석 헬퍼 — 단일 vent_log CSV에서 '고습 시간'을 계산한다.
 
 실행: python3 tools/analyze.py [CSV경로]
 기본 입력: data/sample_vent_log.csv
 matplotlib이 설치돼 있으면 그래프 PNG도 저장한다(선택).
+
+기준선 vs 설치후 비교는 tools/compare.py 참고.
 """
 
-import csv
 import os
 import sys
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "app", "python"))
+sys.path.insert(0, os.path.dirname(__file__))
 
-from vent_logic import SAMPLE_SECONDS, VENT
-
-HIGH_HUM = 70.0   # 이 값 이상이면 '고습'으로 본다
-
-
-def load_rows(path):
-    with open(path, newline="") as f:
-        return list(csv.DictReader(f))
-
-
-def find_cycles(rows):
-    """VENT 진입 ~ 습도<70 구간을 찾아 각 사이클의 고습 시간(초)을 반환."""
-    cycles = []
-    i = 0
-    n = len(rows)
-    prev_state = None
-    while i < n:
-        state = rows[i]["state"]
-        # VENT로 '바뀐' 행 탐지
-        if state == VENT and prev_state != VENT:
-            j = i
-            while j < n and float(rows[j]["humidity"]) >= HIGH_HUM:
-                j += 1
-            if j < n:
-                seconds = (j - i) * SAMPLE_SECONDS
-                cycles.append({
-                    "start": rows[i]["time"],
-                    "drop":  rows[j]["time"],
-                    "seconds": seconds,
-                })
-                prev_state = rows[j]["state"]
-                i = j + 1
-                continue
-            else:
-                cycles.append({
-                    "start": rows[i]["time"],
-                    "drop":  None,   # 데이터 내에서 70 미만으로 안 떨어짐
-                    "seconds": None,
-                })
-        prev_state = state
-        i += 1
-    return cycles
+from vent_logic import SAMPLE_SECONDS
+from vent_metrics import HIGH_HUM, load_rows, find_cycles
 
 
 def sparkline(values):
