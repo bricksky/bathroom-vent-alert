@@ -69,7 +69,7 @@ python3 tools/simulate.py --scenario after      # 설치후용(알림 켬) 샘�
 python3 tools/compare.py            # 감소율 계산 + 성공(목표 30%) 판정
 ```
 
-- `analyze.py`: 환기 사이클별 고습 시간(VENT 시작~습도<70)과 평균. matplotlib 있으면 그래프 PNG.
+- `analyze.py`: 환기 사이클별 고습 시간(VENT 시작~완료 DONE, 기준선+5%p)과 평균. matplotlib 있으면 그래프 PNG.
 - `compare.py`: 두 기간의 평균 고습 시간을 비교해 **감소율(%)**과 **목표 달성 여부**를 판정.
   실제 데이터가 들어오면 `python3 tools/compare.py 기준선.csv 설치후.csv`로 경로만 바꿔 사용.
 
