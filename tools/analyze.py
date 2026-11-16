@@ -12,9 +12,10 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "app", "python"))
 
 from vent_logic import SAMPLE_SECONDS
-from vent_metrics import HIGH_HUM, load_rows, find_cycles
+from vent_metrics import COMPLETION_HUM, load_rows, find_cycles
 
 
 def sparkline(values):
@@ -46,7 +47,8 @@ def maybe_plot(rows, csv_path):
     ax1.plot(xs, hums, color="tab:blue", label="humidity(%)")
     ax1.set_xlabel("time (s)")
     ax1.set_ylabel("humidity (%)", color="tab:blue")
-    ax1.axhline(HIGH_HUM, color="tab:red", linestyle="--", linewidth=1, label="high-hum 70%")
+    ax1.axhline(COMPLETION_HUM, color="tab:red", linestyle="--", linewidth=1,
+                label=f"완료 기준 {COMPLETION_HUM:.0f}%")
     ax2 = ax1.twinx()
     ax2.plot(xs, lights, color="tab:orange", alpha=0.5, label="light")
     ax2.set_ylabel("light", color="tab:orange")
@@ -75,13 +77,14 @@ def main():
     print(f"습도 추이: {sparkline(hums)}")
 
     cycles = find_cycles(rows)
-    print(f"\n감지된 환기 사이클: {len(cycles)}개  (고습 기준 {HIGH_HUM:.0f}%RH 이상)")
+    print(f"\n감지된 환기 사이클: {len(cycles)}개  "
+          f"(VENT 시작~완료, 완료 기준 {COMPLETION_HUM:.0f}%RH)")
     done = [c for c in cycles if c["seconds"] is not None]
     for k, c in enumerate(cycles, 1):
         if c["seconds"] is None:
-            print(f"  #{k}: {c['start']} ~ (데이터 내 미하강)")
+            print(f"  #{k}: {c['start']} ~ (데이터 내 미완료)")
         else:
-            print(f"  #{k}: {c['start']} ~ {c['drop']}  고습 시간 {c['seconds']}초 "
+            print(f"  #{k}: {c['start']} ~ {c['done']}  고습 시간 {c['seconds']}초 "
                   f"({c['seconds'] / 60:.1f}분)")
 
     if done:

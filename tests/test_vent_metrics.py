@@ -25,23 +25,23 @@ def make_rows(samples):
 
 
 def test_single_cycle_seconds():
-    """VENT 시작(습도 85)부터 70 미만(65)까지 2칸 → 2*2=4초."""
+    """VENT 시작부터 DONE(환기 완료)까지 2칸 → 2*2=4초."""
     rows = make_rows([
-        (50, IDLE), (80, SHOWER), (85, VENT), (75, VENT), (65, VENT),
+        (50, IDLE), (80, SHOWER), (85, VENT), (70, VENT), (60, DONE),
     ])
     cycles = find_cycles(rows)
     assert len(cycles) == 1, cycles
-    # VENT 시작 index2(85) → index4(65<70), (4-2)*SAMPLE_SECONDS
+    # VENT 시작 index2 → DONE index4, (4-2)*SAMPLE_SECONDS
     assert cycles[0]["seconds"] == 2 * SAMPLE_SECONDS, cycles[0]
 
 
 def test_two_cycles_average():
-    """두 사이클의 고습 시간 평균이 맞는지."""
+    """두 사이클의 고습 시간(VENT~DONE) 평균이 맞는지."""
     rows = make_rows([
-        # 사이클1: VENT 85 → 65 (2칸=4초)
-        (50, IDLE), (85, VENT), (75, VENT), (65, VENT), (50, IDLE),
-        # 사이클2: VENT 90 → 60 (3칸=6초)
-        (88, VENT), (80, VENT), (72, VENT), (60, VENT), (50, IDLE),
+        # 사이클1: VENT → DONE (2칸=4초)
+        (50, IDLE), (85, VENT), (70, VENT), (60, DONE), (50, IDLE),
+        # 사이클2: VENT → DONE (3칸=6초)
+        (88, VENT), (80, VENT), (70, VENT), (58, DONE), (50, IDLE),
     ])
     avg, cycles = average_high_humidity(rows)
     done = [c for c in cycles if c["seconds"] is not None]
@@ -52,9 +52,9 @@ def test_two_cycles_average():
 
 
 def test_incomplete_cycle_excluded():
-    """습도가 끝까지 70 밑으로 안 떨어지면 평균에서 제외된다."""
+    """DONE(환기 완료)에 도달하지 못하면 평균에서 제외된다."""
     rows = make_rows([
-        (50, IDLE), (85, VENT), (80, VENT), (75, VENT),   # 끝까지 >=70
+        (50, IDLE), (85, VENT), (80, VENT), (75, VENT),   # DONE 없음
     ])
     avg, cycles = average_high_humidity(rows)
     assert cycles[0]["seconds"] is None, cycles
