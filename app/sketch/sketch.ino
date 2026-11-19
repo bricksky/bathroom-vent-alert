@@ -48,10 +48,13 @@ void loop() {
     float temp     = dht.readTemperature();
     int   light    = analogRead(LIGHT_PIN);
 
-    // DHT11 읽기 실패(NaN) 시 이번 샘플은 건너뜀
     if (!isnan(humidity) && !isnan(temp)) {
       // 세 값을 한 메시지로 전달 → 파이썬 on_sensor(humidity, temp, light)
       Bridge.notify("sensor", humidity, temp, light);
+    } else {
+      // DHT11 읽기 실패 — 조용히 넘기지 않고 알린다(배선/풀업 진단용).
+      // 조도는 살아있을 수 있으니 같이 보내 '보드는 동작, DHT만 실패'를 구분 가능.
+      Bridge.notify("sensor_error", light);
     }
   }
 

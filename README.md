@@ -39,7 +39,8 @@ bathroom-vent-alert/
 - **센서**: DHT11 온습도(D6), 포토센서 CDS+10kΩ(A2)
 - **출력**: 부저 모듈(D8)
 
-자세한 핀 배치·판단 로직은 [`docs/experiment.md`](docs/experiment.md) 참고.
+자세한 핀 배치·판단 로직은 [`docs/experiment.md`](docs/experiment.md),
+**배선·하드웨어 브링업 순서는 [`docs/wiring.md`](docs/wiring.md)** 참고.
 
 ## 실행 (UNO Q)
 
@@ -49,6 +50,8 @@ bathroom-vent-alert/
 
 - 기준선 측정(부저 끔): 환경변수 `VENT_BASELINE=1`
 - CSV 경로 변경: 환경변수 `VENT_LOG=/경로/vent_log.csv`
+- 부저 배선 확인(시작 시 2초 "삑"): 환경변수 `VENT_SELFTEST=1`
+- DHT11 읽기 실패 시 로그에 `[DHT ERROR]`가 떠서 배선 문제를 바로 구분 가능
 
 ## 데모·테스트 (하드웨어 없이)
 
